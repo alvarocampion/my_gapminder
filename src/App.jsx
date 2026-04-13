@@ -124,7 +124,15 @@ export default function App() {
   const histogramData = continentsList.map(continent => ({
     continent: continent,
     gdpBarHistogram: gdp_steps.map(x => areaOfContinentCirclesInBin(continent, data, "gdpPercap", xScale, x, x + gdp_stepWidth)),
-    lifeExpHistogram: le_steps.map(x => areaOfContinentCirclesInBin(continent, data, "lifeExp", yScale, x, x + le_stepWidth))
+    lifeExpHistogram: le_steps.map(x => areaOfContinentCirclesInBin(continent, data, "lifeExp", yScale, x, x + le_stepWidth)),
+    totalPopulation: sum(data.filter(d => d.continent === continent).map(d => d.pop)),
+    weightedAvgGdp: sum(data.filter(d => d.continent === continent).map(d => d.gdpPercap * d.pop)) / sum(data.filter(d => d.continent === continent).map(d => d.pop)),
+    weightedAvgLifeExp: sum(data.filter(d => d.continent === continent).map(d => d.lifeExp * d.pop)) / sum(data.filter(d => d.continent === continent).map(d => d.pop)),
+    biggestCountry: data.filter(d => d.continent === continent).reduce((maxCountry, d) => d.pop > maxCountry.pop ? d : maxCountry, {pop: -Infinity}).country,  
+    biggestCountryPopulation: data.filter(d => d.continent === continent).reduce((maxCountry, d) => d.pop > maxCountry.pop ? d : maxCountry, {pop: -Infinity}).pop,
+    averagePopulation: sum(data.filter(d => d.continent === continent).map(d => d.pop)) / data.filter(d => d.continent === continent).length,
+
+
   }));
   
     
@@ -189,27 +197,6 @@ export default function App() {
         )  
         ))}
 
-        {histogramData.map((d, i) => {
-            return (
-            <>
-            <rect
-              key={i}
-              x={xScale(25000)} // Stack bars on top of each other
-              y={yScale(62) + (Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 2)) * i * 2.5)} 
-              height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 4))}
-              width={xScale(gdp_stepWidth*2.5)} // Add some spacing between bars
-              fontSize={8}
-              fill={colorScale(d.continent)}
-            />
-            <text
-              x={xScale(25000) + xScale(gdp_stepWidth*2.5) + 10}
-              y={yScale(62) + (Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 2)) * i * 2.5) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 4))/2}
-              style={{ fontSize: '10px', fill: colorScale(d.continent), textAnchor: 'start', dominantBaseline: 'middle' }}
-            >{d.continent}</text>
-            </>
-            );
-          }
-          )}
         
         {histogramData.map((d, i) => (
           d.lifeExpHistogram.map((lifeExp_area, j) => {
@@ -228,7 +215,7 @@ export default function App() {
           }
         )  
         ))}
-
+        {console.log(histogramData)};
         <g transform={`translate(0, ${boundsHeight})`}>
           <AxisBottom
             xScale={xScale}

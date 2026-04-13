@@ -1,10 +1,9 @@
-import { scaleLinear, scaleSqrt, scaleOrdinal, schemeCategory10, color } from "d3";
+import { scaleLinear, scaleSqrt, scaleOrdinal, schemeCategory10, min, max, group, bin, sum } from "d3";
 import { useState, useEffect } from "react";
 import './App.css';
 import { data as data } from './assets/data.jsx';
 import { AxisBottom } from "./AxisBottom";
 import { AxisLeft } from "./AxisLeft";
-import { min, max } from "d3";
 
 const useWindowSize = () => {
   const [windowSize, setWindowSize] = useState({
@@ -37,13 +36,6 @@ const minpop = min(data, d => d.pop);
 const maxpop = max(data, d => d.pop);
 
 
-const start_xaxes = 0;
-const end_xaxes = 60;
-const step_xaxes = 5;
-
-// Calculate the number of elements: (55 - 0) / 5 + 1 = 12
-const length_xaxes = Math.floor((end_xaxes - start_xaxes) / step_xaxes);
-const xticks_num = Array.from({ length: length_xaxes }, (_, i) => start_xaxes + (i * step_xaxes));
 
 
 export default function App() {
@@ -53,16 +45,16 @@ export default function App() {
   const width = Math.min(windowSize.width - 80, 650); // Max 650px, accounting for padding
   const height = Math.min(windowSize.height * 0.4, 360); // Max 40% of screen height or 360px
 
-  const MARGIN = {top: Math.floor(height * 0.1), right: Math.floor(width * 0.05), 
+  const MARGIN = {top: Math.floor(height * 0.25), right: Math.floor(width * 0.08), 
                   bottom: Math.floor(height * 0.18), left: Math.floor(width * 0.1)};
 
   const boundsWidth = width - MARGIN.left - MARGIN.right;
   const boundsHeight = height - MARGIN.top - MARGIN.bottom;
-  
+
   const xScale = scaleLinear()
     .domain([minGdp, maxGdp])
     .range([0, boundsWidth]);
-  
+
   const yScale = scaleLinear()
     .domain([minlifeExp, maxlifeExp])
     .range([boundsHeight, 0]);
@@ -71,9 +63,80 @@ export default function App() {
     .domain([minpop, maxpop])
     .range([2, 20]);
 
+  const continentsList = ["Europe", "Asia", "Africa", "Americas", "Oceania"];
+
   const colorScale = scaleOrdinal()
-    .domain(["Europe", "Asia", "Africa", "Americas", "Oceania"])
+    .domain(continentsList)
     .range(schemeCategory10);
+
+    function segmentArea(radius, x1, axisScale, gdp) { 
+       let d2 = Math.max(axisScale(x1), axisScale(gdp) - radius) - (axisScale(gdp) - radius);
+        if (d2 < 0) {
+          return 0;
+        }
+        if (d2 > 2 * radius) {
+          return Math.PI * Math.pow(radius, 2);
+        }
+        if (d2 > radius) {
+          d2 -= radius;
+          const theta2 = 2 * Math.acos(d2 / radius);
+          const segmentArea2 = (Math.pow(radius, 2) / 2) * (theta2 - Math.sin(theta2));
+          return Math.PI * Math.pow(radius, 2) - segmentArea2;
+        } else {
+          d2 = radius - d2;
+          const theta2 = 2 * Math.acos(d2 / radius);
+          const segmentArea2 = (Math.pow(radius, 2) / 2) * (theta2 - Math.sin(theta2));
+          return segmentArea2;
+        }
+      }
+
+    function countryAreaInBin(d, data_property, axisScale, x0, x1) {
+      // returns the area of circle falling into x0 and x1 with scale of xScale and sizeScale
+      const gdp = d[data_property];
+      const pop = d.pop;
+      const radius = sizeScale(pop);
+      
+      const area2 = segmentArea(radius, x1, axisScale, gdp)
+      const area1 = segmentArea(radius, x0, axisScale, gdp);
+      
+      return area2 - area1;
+      
+    }   
+    
+
+    function areaOfContinentCirclesInBin(continent, data, data_property, axisScale, x0, x1) {
+      // returns areas of circles of a continent falling into x0 and x1 with scale of xScale and sizeScale
+      const filteredData = data.filter(d => d.continent === continent);
+      return sum(filteredData.map(d => countryAreaInBin(d, data_property, axisScale, x0, x1)));
+    }
+
+  // define gdp_bins
+  
+  const gdp_n_steps = 100;
+  const gdp_stepWidth = maxGdp / gdp_n_steps;
+  const gdp_steps = Array.from({ length: gdp_n_steps }, (_, i) => i * gdp_stepWidth);
+  
+  const le_n_steps = 40;
+  const le_stepWidth = (maxlifeExp- minlifeExp) / le_n_steps;
+  const le_steps = Array.from({ length: le_n_steps }, (_, i) => minlifeExp + i * le_stepWidth);
+  
+  
+  const histogramData = continentsList.map(continent => ({
+    continent: continent,
+    gdpBarHistogram: gdp_steps.map(x => areaOfContinentCirclesInBin(continent, data, "gdpPercap", xScale, x, x + gdp_stepWidth)),
+    lifeExpHistogram: le_steps.map(x => areaOfContinentCirclesInBin(continent, data, "lifeExp", yScale, x, x + le_stepWidth))
+  }));
+  
+    
+
+  
+  const start_xaxes = 0;
+  const end_xaxes = 60;
+  const step_xaxes = 5;
+
+  // Calculate the number of elements: (55 - 0) / 5 + 1 = 12
+  const length_xaxes = Math.floor((end_xaxes - start_xaxes) / step_xaxes);
+  const xticks_num = Array.from({ length: length_xaxes }, (_, i) => start_xaxes + (i * step_xaxes));
 
   return (
     <div className="app-container">
@@ -91,7 +154,7 @@ export default function App() {
       </div>
       <div>
         <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" className="svg-container">
-          <rect width="100%" height={height} fill="lightgrey" fillOpacity={0.8} />
+          <rect width="100%" height={height} fill="lightgrey" fillOpacity={0.4} />
           <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
 
         {data.map((d, i) => (
@@ -106,6 +169,64 @@ export default function App() {
             fill={colorScale(d.continent)}
             fillOpacity={0.2}
           />
+        ))}
+
+        {histogramData.map((d, i) => (
+          d.gdpBarHistogram.map((gdp_area, j) => {
+            
+            return (
+            <rect
+              key={i*100 + j}
+              x={xScale(gdp_steps[0] + ((j + 0.5) * gdp_stepWidth))} // Stack bars on top of each other
+              y={yScale(102) + (Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 2)) * i)} // Stack bars on top of each other
+              width={xScale(gdp_stepWidth)} // Add some spacing between bars
+              height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 2))} // Height equivalent to 2 years
+              fill={colorScale(d.continent)}
+              fillOpacity={gdp_area / Math.max(1, max(d.gdpBarHistogram))} // Proportional opacity based on area
+            />
+            );
+          }
+        )  
+        ))}
+
+        {histogramData.map((d, i) => {
+            return (
+            <>
+            <rect
+              key={i}
+              x={xScale(25000)} // Stack bars on top of each other
+              y={yScale(62) + (Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 2)) * i * 2.5)} 
+              height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 4))}
+              width={xScale(gdp_stepWidth*2.5)} // Add some spacing between bars
+              fontSize={8}
+              fill={colorScale(d.continent)}
+            />
+            <text
+              x={xScale(25000) + xScale(gdp_stepWidth*2.5) + 10}
+              y={yScale(62) + (Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 2)) * i * 2.5) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 4))/2}
+              style={{ fontSize: '10px', fill: colorScale(d.continent), textAnchor: 'start', dominantBaseline: 'middle' }}
+            >{d.continent}</text>
+            </>
+            );
+          }
+          )}
+        
+        {histogramData.map((d, i) => (
+          d.lifeExpHistogram.map((lifeExp_area, j) => {
+            
+            return (
+            <rect
+              key={i*100 + j}
+              x={xScale(51500) + (Math.abs(xScale(52000) - xScale(51500)) * i)} // Stack bars on top of each other
+              y={yScale(minlifeExp + ((j + 0.5) * le_stepWidth))} // Stack bars on top of each other
+              width={(Math.abs(xScale(50500) - xScale(50000)))} // Add some spacing between bars
+              height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + le_stepWidth))} // Height equivalent to 2 years
+              fill={colorScale(d.continent)}
+              fillOpacity={lifeExp_area / (-Math.max(0.00001, -min(d.lifeExpHistogram)))} // Proportional opacity based on area
+            />
+            );
+          }
+        )  
         ))}
 
         <g transform={`translate(0, ${boundsHeight})`}>

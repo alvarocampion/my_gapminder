@@ -133,7 +133,7 @@ export default function App() {
     averagePopulation: sum(data.filter(d => d.continent === continent).map(d => d.pop)) / data.filter(d => d.continent === continent).length,
 
 
-  }));
+  })).sort((a, b) => a.weightedAvgGdp - b.weightedAvgGdp);
   
     
 
@@ -215,6 +215,94 @@ export default function App() {
           }
         )  
         ))}
+        <rect
+              x={xScale(17500)} // Stack bars on top of each other
+              y={yScale(60)} // Stack bars on top of each other
+              width={(xScale(4500))} // Add some spacing between bars
+              height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5))} // Height equivalent to 2 years
+              fill={"grey"}
+              fillOpacity={0.2} // Proportional opacity based on area
+            />
+        <rect
+              x={xScale(17500)} // Stack bars on top of each other
+              y={yScale(55)} // Stack bars on top of each other
+              width={(xScale(4500))} // Add some spacing between bars
+              height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5))} // Height equivalent to 2 years
+              fill={"grey"}
+              fillOpacity={0.2} // Proportional opacity based on area
+            />
+        <text
+              x={xScale(17500) + xScale(4500) / 2} // Stack bars on top of each other
+              y={yScale(60)+ Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2} // Stack bars on top of each other
+              textAnchor="right"
+              dominantBaseline="middle"
+              fontSize="10px"
+              fill="black"
+            >
+              GDP
+            </text>
+        <text
+              x={xScale(17500) + xScale(4500) / 2} // Stack bars on top of each other
+              y={yScale(55)+ Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2} // Stack bars on top of each other
+              textAnchor="right"
+              dominantBaseline="middle"
+              fontSize="10px"
+              fill="black"
+            >
+              LE
+            </text>
+            
+
+
+        {histogramData.map((d, i) => {
+            
+            return (
+              <>
+            <rect
+              key={i*100}
+              x={xScale(22500) + i * xScale(4800)} // Stack bars on top of each other
+              y={yScale(65)} // Stack bars on top of each other
+              width={(xScale(4500))} // Add some spacing between bars
+              height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5))} // Height equivalent to 2 years
+              fill={colorScale(d.continent)}
+              fillOpacity={0.2} // Proportional opacity based on area
+            />
+            <text
+              x={xScale(22500) + i * xScale(4800) + xScale(4500) / 2}
+              y={yScale(65) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="10px"
+              fill="black"
+            >
+              {d.continent}
+            </text>
+            <text
+              x={xScale(22500) + i * xScale(4800) + xScale(4500) / 2}
+              y={yScale(60) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="10px"
+              fill="black"
+            >
+              {(d.weightedAvgGdp/1000).toFixed(1)} k
+            </text>
+            <text
+              x={xScale(22500) + i * xScale(4800) + xScale(4500) / 2}
+              y={yScale(55) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="10px"
+              fill="black"
+            >
+              {d.weightedAvgLifeExp.toFixed(0)} 
+            </text>
+            </>
+            );
+          }
+        )}
+
+
         {console.log(histogramData)};
         <g transform={`translate(0, ${boundsHeight})`}>
           <AxisBottom

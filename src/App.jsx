@@ -232,8 +232,11 @@ export default function App() {
         <g transform={`translate(0, ${boundsHeight})`}>
           <AxisBottom
             xScale={xScale}
+            labelScale={0.001}
+            labelTail="k"
             pixelsPerTick={60}
             boundsHeight={boundsHeight}
+            label="GDP per capita (USD)"
           />
         </g>
 
@@ -241,6 +244,7 @@ export default function App() {
           yScale={yScale}
           pixelsPerTick={40}
           boundsWidth={boundsWidth}
+          label="Life expectancy (y)"
         />
 
       </g>

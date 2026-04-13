@@ -1,6 +1,6 @@
 const TICK_LENGTH = 6;
 
-export const AxisLeft = ({ yScale, pixelsPerTick, boundsWidth }) => {
+export const AxisLeft = ({ yScale, pixelsPerTick, boundsWidth, label }) => {
   const range = yScale.range();
   const height = range[0] - range[1];
   const numberOfTicksTarget = Math.floor(height / pixelsPerTick);
@@ -27,6 +27,19 @@ export const AxisLeft = ({ yScale, pixelsPerTick, boundsWidth }) => {
           </text>
         </g>
       ))}
+      {/* Axis title */}
+      {label && (
+        <text
+          x={-height / 2}
+          y={-TICK_LENGTH - 30}
+          fontSize="10px"
+          textAnchor="middle"
+          transform="rotate(-90)"
+        >
+          {label}
+        </text>
+      )}
+
     </>
   );
 };

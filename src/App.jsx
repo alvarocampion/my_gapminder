@@ -30,10 +30,11 @@ const PADDING_CENTER = 20;
 
 const minGdp = 0 //min(data, d => d.gdpPercap);
 const maxGdp = Math.ceil(max(data, d => d.gdpPercap) / 10000) * 10000; // Round up to nearest 10,000
-const minlifeExp = Math.floor(min(data, d => d.lifeExp) / 5) * 5; // Round down to nearest 5
+const minlifeExp = 25 //Math.floor(min(data, d => d.lifeExp) / 5) * 5; // Round down to nearest 5
 const maxlifeExp = Math.ceil(max(data, d => d.lifeExp) / 5) * 5; // Round up to nearest 5
 const minpop = min(data, d => d.pop);
 const maxpop = max(data, d => d.pop);
+const maxLE_legend = 50;
 
 
 
@@ -216,8 +217,26 @@ export default function App() {
         )  
         ))}
         <rect
+              x={xScale(22500)} // Stack bars on top of each other
+              y={yScale(maxLE_legend + 6)} // Stack bars on top of each other
+              width={(xScale(5 * 4800))} // Add some spacing between bars
+              height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5))} // Height equivalent to 2 years
+              fill={"grey"}
+              fillOpacity={0.2} // Proportional opacity based on area
+            />
+        
+        <text
+              x={xScale(22500) + 2 * xScale(4800) + xScale(4500) / 2}
+              y={yScale(maxLE_legend + 6) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="10px"
+              fill="black"
+            >Total population and weighted averages</text>
+
+        <rect
               x={xScale(17500)} // Stack bars on top of each other
-              y={yScale(60)} // Stack bars on top of each other
+              y={yScale(maxLE_legend - 6)} // Stack bars on top of each other
               width={(xScale(4500))} // Add some spacing between bars
               height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5))} // Height equivalent to 2 years
               fill={"grey"}
@@ -225,16 +244,25 @@ export default function App() {
             />
         <rect
               x={xScale(17500)} // Stack bars on top of each other
-              y={yScale(55)} // Stack bars on top of each other
+              y={yScale(maxLE_legend - 12)} // Stack bars on top of each other
               width={(xScale(4500))} // Add some spacing between bars
               height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5))} // Height equivalent to 2 years
               fill={"grey"}
               fillOpacity={0.2} // Proportional opacity based on area
             />
+        <rect
+              x={xScale(17500)} // Stack bars on top of each other
+              y={yScale(maxLE_legend - 18)} // Stack bars on top of each other
+              width={(xScale(4500))} // Add some spacing between bars
+              height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5))} // Height equivalent to 2 years
+              fill={"grey"}
+              fillOpacity={0.2} // Proportional opacity based on area
+            />
+        
         <text
               x={xScale(17500) + xScale(4500) / 2} // Stack bars on top of each other
-              y={yScale(60)+ Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2} // Stack bars on top of each other
-              textAnchor="right"
+              y={yScale(maxLE_legend - 6) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2} // Stack bars on top of each other
+              textAnchor="left"
               dominantBaseline="middle"
               fontSize="10px"
               fill="black"
@@ -243,13 +271,24 @@ export default function App() {
             </text>
         <text
               x={xScale(17500) + xScale(4500) / 2} // Stack bars on top of each other
-              y={yScale(55)+ Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2} // Stack bars on top of each other
-              textAnchor="right"
+              y={yScale(maxLE_legend - 12)+ Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2} // Stack bars on top of each other
+              textAnchor="left"
               dominantBaseline="middle"
               fontSize="10px"
               fill="black"
             >
               LE
+            </text>
+        
+        <text
+              x={xScale(17500) + xScale(4500) / 2} // Stack bars on top of each other
+              y={yScale(maxLE_legend - 18)+ Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2} // Stack bars on top of each other
+              textAnchor="left"
+              dominantBaseline="middle"
+              fontSize="10px"
+              fill="black"
+            >
+              Pop
             </text>
             
 
@@ -261,7 +300,7 @@ export default function App() {
             <rect
               key={i*100}
               x={xScale(22500) + i * xScale(4800)} // Stack bars on top of each other
-              y={yScale(65)} // Stack bars on top of each other
+              y={yScale(maxLE_legend)} // Stack bars on top of each other
               width={(xScale(4500))} // Add some spacing between bars
               height={Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5))} // Height equivalent to 2 years
               fill={colorScale(d.continent)}
@@ -269,7 +308,7 @@ export default function App() {
             />
             <text
               x={xScale(22500) + i * xScale(4800) + xScale(4500) / 2}
-              y={yScale(65) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2}
+              y={yScale(maxLE_legend) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2}
               textAnchor="middle"
               dominantBaseline="middle"
               fontSize="10px"
@@ -279,7 +318,7 @@ export default function App() {
             </text>
             <text
               x={xScale(22500) + i * xScale(4800) + xScale(4500) / 2}
-              y={yScale(60) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2}
+              y={yScale(maxLE_legend - 6) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2}
               textAnchor="middle"
               dominantBaseline="middle"
               fontSize="10px"
@@ -289,13 +328,23 @@ export default function App() {
             </text>
             <text
               x={xScale(22500) + i * xScale(4800) + xScale(4500) / 2}
-              y={yScale(55) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2}
+              y={yScale(maxLE_legend - 12) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2}
               textAnchor="middle"
               dominantBaseline="middle"
               fontSize="10px"
               fill="black"
             >
               {d.weightedAvgLifeExp.toFixed(0)} 
+            </text>
+            <text
+              x={xScale(22500) + i * xScale(4800) + xScale(4500) / 2}
+              y={yScale(maxLE_legend - 18) + Math.abs(yScale(minlifeExp) - yScale(minlifeExp + 5)) / 2}
+              textAnchor="middle"
+              dominantBaseline="middle"
+              fontSize="10px"
+              fill="black"
+            >
+              {(d.totalPopulation/1e6).toFixed(0)}M 
             </text>
             </>
             );

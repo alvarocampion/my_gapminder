@@ -34,13 +34,14 @@ const minlifeExp = 25 //Math.floor(min(data, d => d.lifeExp) / 5) * 5; // Round 
 const maxlifeExp = Math.ceil(max(data, d => d.lifeExp) / 5) * 5; // Round up to nearest 5
 const minpop = min(data, d => d.pop);
 const maxpop = max(data, d => d.pop);
-const maxLE_legend = 50;
+const maxLE_legend = 54;
 
 
 
 
 export default function App() {
   const windowSize = useWindowSize();
+  const isSmartphone = windowSize.width <= 480;
   
   // Responsive dimensions
   const width = Math.min(windowSize.width - 80, 650); // Max 650px, accounting for padding
@@ -156,14 +157,19 @@ export default function App() {
         <div className="header-box">
         </div>
         <span className="header-title">
-          <b>Escape artists</b>
+          <b>How Does Income Relate to Life Expectancy?</b>
         </span>
         <br />
-        <span className="header-subtitle">Number of laboratory-acquired infections, 1970-2021</span>
+        <span className="header-subtitle">
+          People live longer in countries with a high GDP per capita.
+
+
+
+        </span>
       </div>
       <div>
         <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet" className="svg-container">
-          <rect width="100%" height={height} fill="lightgrey" fillOpacity={0.4} />
+          <rect width="100%" height={height} fill="white" fillOpacity={0.4} />
           <g transform={`translate(${MARGIN.left}, ${MARGIN.top})`}>
 
         {data.map((d, i) => (
@@ -179,7 +185,6 @@ export default function App() {
             fillOpacity={0.2}
           />
         ))}
-
         {histogramData.map((d, i) => (
           d.gdpBarHistogram.map((gdp_area, j) => {
             
@@ -216,6 +221,9 @@ export default function App() {
           }
         )  
         ))}
+
+        {!isSmartphone && (
+          <>
         <rect
               x={xScale(22500)} // Stack bars on top of each other
               y={yScale(maxLE_legend + 6)} // Stack bars on top of each other
@@ -350,6 +358,8 @@ export default function App() {
             );
           }
         )}
+          </>
+        )}
 
 
         {console.log(histogramData)};
@@ -376,11 +386,11 @@ export default function App() {
       </div>
       <div className="footer">
         <span>
-          Sources: Laboratory-Acquired Infection Database; American Biological Safety Association
+          Sources: World Bank’s GDP per capita, IHME 2014, UN World Population Prospects
           </span>
           <br />
           <span className="footer">
-            The Economist
+             through www.gapminder.org
             </span>
       </div>
       </div>
